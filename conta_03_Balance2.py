@@ -3,18 +3,22 @@ def iif(cond,vt,vf):
         res = vt
     else:
         res = vf
-    return res    
-# --------------------------------------------------------------------------------------------------    
+    return res
+# --------------------------------------------------------------------------------------------------
 class Contabilidad:
     def __init__(self, empresa, ejercicio):
         self.empresa   = empresa
         self.ejercicio = ejercicio
-        self.lisPartes=[0,1,2,3,4,5] # sacrifico la referencia del lugar 0
-        self.lisPartes[1] = parteContable(1,"Activo"  ,"D")
-        self.lisPartes[2] = parteContable(2,"Pasivo"  ,"A")
-        self.lisPartes[3] = parteContable(3,"Kapital" ,"A")
-        self.lisPartes[4] = parteContable(4,"Ingresos","A")
-        self.lisPartes[5] = parteContable(5,"Egresos" ,"D")
+
+        self.lisPartes= [0]+ [
+            parteContable(a[0],a[1],a[2]) for a in [
+                (1,"Activo"  ,"D"),
+                (2,"Pasivo"  ,"A"),
+                (3,"Kapital" ,"A"),
+                (4,"Ingresos","A"),
+                (5,"Egresos" ,"D")
+            ]
+        ]
 
     def altaCta(self,numCta,nombreCta,naturaleza):
         #print("Contabilidad: altaCta("+str(numCta)+","+nombreCta+" ...(" + naturaleza+")")
@@ -45,7 +49,7 @@ class Contabilidad:
             self.incideMovtos(poliza)
         else:
             raise Exception('Contabilidad: poliza descuadrada' )
-        return ban    
+        return ban
 
     def valida(self,numCta):
         numId = numCta // 100000
@@ -53,20 +57,20 @@ class Contabilidad:
         if 1 <= numId and numId <= 5:
             ban = self.lisPartes[numId].verificaCta(numCta)
         return ban
-    
+
     def incideMovtos(self,poliza):
         for m in poliza.colMovtos:
             numCta = m.numCta
             numId = numCta // 100000
             if 1 <= numId and numId <= 5:
                self.lisPartes[numId].incideMovto(m)
-    
+
     def __str__(self):
         cadena = "Contabilidad de " + self.empresa + " para el ejercicio " + str(self.ejercicio)
         for k in range(1,6):
           cadena += '\n' + str(self.lisPartes[k])
         return cadena
-    
+
     def balance(self):
         sdoPartes=[0]*6
         for k in range(1,6):
@@ -82,7 +86,7 @@ class Contabilidad:
                       sdoPartes[5].monto)
         #cadena = str(self) + '\n' + 'Aquí va el Activo = Pasivo + Capital + Ingreso - Egreso'
         return cadena
-# --------------------------------------------------------------------------------------------------    
+# --------------------------------------------------------------------------------------------------
 class parteContable:
     def __init__(self,numId,nombreParte,natParte):
         self.id     = numId
@@ -115,7 +119,7 @@ class parteContable:
                 sa += movtoSdoCta.monto
         movtoSaldo = Movto(0,0,iif(self.nat=='D','C','A'),iif(self.nat=='D',sc-sa,sa-sc))
         return movtoSaldo
-    
+
 # ----------------------------------------------------------------------------------------------------
 class cuentaT:
     def __init__(self,numCta,nombreCta,natCta):
@@ -143,7 +147,7 @@ class cuentaT:
              movtoSaldo = Movto(0,0,"C",sc - sa)
         else:
              movtoSaldo = Movto(0,0,"A",sa - sc)
-        return movtoSaldo    
+        return movtoSaldo
 # ------------------------------------------------------------------------------------------------------
 class Movto:
     def __init__(self,numPoliza, numCta, tipoMov, monto ):
@@ -157,7 +161,7 @@ class Movto:
             cadena += " " * 10
         cadena += str(self.monto)
         return cadena
-    
+
 # ------------------------------------------------------------------------------------------------------
 class Poliza:
     def __init__(self,numPoliza, nomPoliza, fecha ): # fecha como AAAAMMDD (numérico)
@@ -169,13 +173,13 @@ class Poliza:
         self.colMovtos.append(Movto(self.numPoliza,numCta,"C",monto))
     def abono(self,numCta,monto):
         self.colMovtos.append(Movto(self.numPoliza,numCta,"A",monto))
-                       
+
     def __str__(self):
         cadena =  str(self.numPoliza) + " ... " + self.nomPoliza + "   " + str(self.fecha)
         for x in self.colMovtos:
            cadena += "\n" + " " * 4 + str(x)
         return cadena
-            
+
 
 
 #
@@ -195,7 +199,7 @@ try:
   conta.altaCta(200100,"Proveedores"        ,"A")
 except Exception as ex:
   print(str(ex))
-try:  
+try:
   conta.altaCta(300000,"Kapital"            ,"A")
 except Exception as ex:
   print(str(ex))
@@ -211,7 +215,7 @@ try:
   conta.altaCta(600100,"Costo de lo Vendido","D")
 except Exception as ex:
   print(str(ex))
-  
+
 print("\n"+str(conta)+"\n\n")
 
 pol1 = Poliza(1,"Constitución de la Empresa",20190121)
@@ -223,7 +227,7 @@ try:
   conta.incidePoliza(pol1)
   print("\n"+str(conta)+"\n\n")
 except Exception as ex:
-  print(str(ex))  
+  print(str(ex))
 
 pol2 = Poliza(2,"Compra de mercancía por 3000 pagados al contado",20190122)
 pol2.cargo(100200,3000)
@@ -234,7 +238,7 @@ try:
   conta.incidePoliza(pol2)
   print("\n"+str(conta)+"\n\n")
 except Exception as ex:
-  print(str(ex))  
+  print(str(ex))
 
 pol3 = Poliza(3,"Venta al contado por 1500 de mercancía que costó 1000",20190122)
 pol3.abono(100200,1000)
@@ -247,7 +251,7 @@ try:
   conta.incidePoliza(pol3)
   print("\n"+str(conta)+"\n\n")
 except Exception as ex:
-  print(str(ex))  
+  print(str(ex))
 
 pol4 = Poliza(4,"Venta al contado por 1000 de mercancía que costó 750",20190201)
 pol4.abono(100200,1000)
@@ -260,10 +264,9 @@ try:
   conta.incidePoliza(pol4)
   print("\n"+str(conta)+"\n\n")
 except Exception as ex:
-  print(str(ex))  
+  print(str(ex))
 
 print('\n'+conta.balance())
 
 #
 # ========================== FIN DEL SCRIPT PRINCIPAL =====================
-
