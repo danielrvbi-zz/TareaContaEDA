@@ -21,13 +21,13 @@ class Contabilidad:
         ]
 
     def altaCta(self,numCta,nombreCta,naturaleza):
-        #print("Contabilidad: altaCta("+str(numCta)+","+nombreCta+" ...(" + naturaleza+")")
-        numId = numCta // 100000
-        if numId < 1 or numId > 5:
-            #print("¿Apuntaste las placas de la combi?")
-            raise Exception('altaCta:', 'El número de Cta ' + str(numCta) + ' NO es valido' )
-        else:
+        try:
             self.lisPartes[numId].altaCta(numCta,nombreCta,naturaleza)
+        except:
+            raise print('altaCta:', 'El número de Cta ' + str(numCta) + ' NO es valido' )
+            return False
+        else:
+            return True
 
     def incidePoliza(self, poliza):
         #
